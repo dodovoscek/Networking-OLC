@@ -41,6 +41,9 @@ int main()
 
 		socket.write_some(asio::buffer(sRequest.data(), sRequest.size()), ec);
 
+		// waiting for data to be sent to us
+		socket.wait(socket.wait_read);
+
 		size_t bytes = socket.available();
 		std::cout << "Bytes available: " << bytes << std::endl;
 
