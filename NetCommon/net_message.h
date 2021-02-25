@@ -30,7 +30,7 @@ namespace olc
 				return os;
 			}
 
-			// pushes any POD like data into message buffer
+			// pushes any POD (plain old data) like data into message buffer
 			template <typename DataType>
 			friend message<T>& operator << (message<T>& msg, const DataType& data)
 			{
@@ -38,10 +38,10 @@ namespace olc
 				static_assert(std::is_standard_layout<DataType>::value, "Data is too complex to be pushed into vector");
 
 				// cache current size of vector, as this will be the poinet we insert the data
-				size_t i = msg.body.size;
+				size_t i = msg.body.size();
 
 				// resize te vector by the size of the data being pushed
-				msg.body.resize(msg.body.size + sizeof(DataType));
+				msg.body.resize(msg.body.size() + sizeof(DataType));
 
 				// pshysically copy the data into the newly allocated vector space
 				std::memcpy(msg.body.data() + i, &data, sizeof(DataType));
@@ -54,7 +54,7 @@ namespace olc
 			}
 
 			template <typename DataType>
-			friend message<T>& operator >> (message<T>& msg, const DataType& data)
+			friend message<T>& operator >> (message<T>& msg, DataType& data)
 			{
 				// check that the type of the data is trivially copyable
 				static_assert(std::is_standard_layout<DataType>::value, "Data is too complex to be pushed into vector");
