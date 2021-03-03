@@ -23,13 +23,13 @@ protected:
 		return true;
 	}
 
-	virtual void OnMessage(std::shared_ptr<olc::net::connection<CustomMsgTypes>> client, olc::net::message<CustomMsgTypes>& msg)
+	virtual void OnMessage(std::shared_ptr<olc::net::connection<CustomMsgTypes>> client, const olc::net::message<CustomMsgTypes>& msg)
 	{
 		switch (msg.header.id)
 		{
 		case CustomMsgTypes::ServerPing:
 		{
-			std::cout << "[ " << client->GetID() << "] ServerPing" << std::endl;
+			std::cout << "[" << client->GetID() << "] ServerPing" << std::endl;
 
 			client->Send(msg);
 		}
@@ -45,7 +45,7 @@ int main()
 
 	while (1)
 	{
-		server.Update(-1, true);
+		server.Update();
 	}
 
 	return 0;
