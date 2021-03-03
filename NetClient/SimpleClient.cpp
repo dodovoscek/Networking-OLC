@@ -1,34 +1,75 @@
 #include <iostream>
 #include <olc_net.h>
 
-enum class CustomMsgClass : uint32_t
+enum class CustomMsgTypes : uint32_t
 {
-	FireBullet,
-	MovePlayer
+	ServerAccept,
+	ServerDeny,
+	ServerPing,
+	MessageAll,
+	ServerMessage
+};
+
+class CustomClient : public olc::net::client_interface<CustomMsgTypes>
+{
+public:
+	void PingServer()
+	{
+		olc::net::message<CustomMsgTypes> msg;
+		msg.header.id = CustomMsgTypes::ServerPing;
+
+		std::chrono::system_clock::time_point timeNow = std::chrono::system_clock::now();
+
+		msg << timeNow;
+		Send(msg);
+	}
 };
 
 int main()
 {
-	olc::net::message<CustomMsgClass> msg;
-	msg.header.id = CustomMsgClass::FireBullet;
+	CustomClient c;
+	c.Connect("127.0.0.1", 60000);
 
-	int a = 1;
-	bool b = true;
-	float c = 3.14F;
+	bool key[3] = { false, false, false };
+	bool old_key[3] = { false, false, false };
 
-	struct
+	bool bQuit = false;
+	while (!bQuit)
 	{
-		float x;
-		float y;
-	} d[5];
+		if (GetForegroundWindow() == GetConsoleWindow())
+		{
+			key[0] = GetAsyncKeyState('1') & 0x8000;
+			key[1] = GetAsyncKeyState('2') & 0x8000;
+			key[2] = GetAsyncKeyState('3') & 0x8000;
+		}
 
-	msg << a << b << c << d;
+		if (key[0] && !old_key[0]) c.PingServer();;
+		if (key[2] && !old_key[2]) bQuit = true;
 
-	a = 99;
-	b = false;
-	c = 3.45F;
+		for (int i = 0; i < 3; i++) 
+			old_key[i] = key[i];
 
-	msg >> d >> c >> b >> a;
-
+		if (c.IsConnected())
+		{
+			if (!c.Incoming().empty())
+			{
+				auto msg = c.Incoming().pop_front().msg;
+				switch (msg.header.id)
+				{
+				case CustomMsgTypes::ServerPing:
+					std::chrono::system_clock::time_point timeNow = std::chrono::system_clock::now();
+					std::chrono::system_clock::time_point timeThen;
+					msg >> timeThen;
+					std::cout << "Ping: " << std::chrono::duration<double>(timeNow - timeThen).count() << std::endl;
+					break;
+				}
+			}
+		}
+		else
+		{
+			std::cout << "server down" << std::endl;
+			bQuit = true;
+		}
+	}
 	return 0;
 }

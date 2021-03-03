@@ -20,7 +20,7 @@ void GrabSomeData(asio::ip::tcp::socket& socket)
 			{
 				std::cout << "\n\nRead " << length << " bytes\n\n";
 
-				for (int i = 0; i < length; i++)
+				for (uint32_t i = 0; i < length; i++)
 					std::cout << vBuffer[i];
 
 				// read leftover data
